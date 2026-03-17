@@ -1,0 +1,31 @@
+﻿@model InterestRooms.ViewModels.CreateRoomViewModel
+
+<h2>Create Room</h2>
+
+<form asp-action="Create" method="post">
+    <div>
+        <label>Room Name</label>
+        <input asp-for="Name" />
+        <span asp-validation-for="Name"></span>
+    </div>
+
+    <div>
+        <label>Description</label>
+        <input asp-for="Description" />
+        <span asp-validation-for="Description"></span>
+    </div>
+
+    <div>
+        <label>Category</label>
+        <input asp-for="Category" />
+        <span asp-validation-for="Category"></span>
+    </div>
+
+    <button type="submit">Create Room</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

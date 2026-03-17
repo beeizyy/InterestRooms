@@ -1,0 +1,45 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+<section class="landing-hero">
+    <div class="landing-copy">
+        <div class="landing-pill">Welcome !</div>
+        <h1 class="landing-title">InterestRooms</h1>
+        <p class="landing-desc">
+            Join anonymous interest-based rooms, choose your own nickname for each room,
+            reply to messages, and connect with people who share the same topics as you!
+        </p>
+
+        <div class="landing-actions">
+            <a asp-controller="Account" asp-action="Register" class="btn btn-primary">Get Started</a>
+            <a asp-controller="Rooms" asp-action="Index" class="btn btn-secondary">Explore Rooms</a>
+        </div>
+    </div>
+
+    <div class="landing-visual">
+        <div class="landing-note note-a">Anonymous rooms</div>
+        <div class="landing-note note-b">Custom nicknames</div>
+        <div class="landing-note note-c">Reply & like</div>
+    </div>
+</section>
+
+<section class="landing-features">
+    <div class="landing-feature-card">
+        <div class="landing-feature-icon">💬</div>
+        <h3>Join rooms</h3>
+        <p>Browse rooms based on interests and join the ones you like.</p>
+    </div>
+
+    <div class="landing-feature-card">
+        <div class="landing-feature-icon">🎭</div>
+        <h3>Stay anonymous</h3>
+        <p>Use a different nickname in every room.</p>
+    </div>
+
+    <div class="landing-feature-card">
+        <div class="landing-feature-icon">💖</div>
+        <h3>Interact easily</h3>
+        <p>Reply to messages, like them, and keep conversations active.</p>
+    </div>
+</section>

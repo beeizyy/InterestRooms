@@ -1,0 +1,25 @@
+﻿@model InterestRooms.ViewModels.JoinRoomViewModel
+
+<h2>Join Room</h2>
+
+<p><strong>Room:</strong> @Model.RoomName</p>
+
+<form asp-action="Join" method="post">
+    <input type="hidden" asp-for="RoomId" />
+
+    <div class="mb-3">
+        <label asp-for="Nickname" class="form-label">Choose your anonymous nickname</label>
+        <input asp-for="Nickname" class="form-control" />
+        <span asp-validation-for="Nickname" class="text-danger"></span>
+    </div>
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <button type="submit" class="btn btn-primary">Join Room</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

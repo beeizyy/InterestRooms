@@ -1,0 +1,32 @@
+﻿@model List<InterestRooms.Models.Room>
+
+<h2>All Rooms</h2>
+
+<p>
+    <a asp-controller="Rooms" asp-action="Create">Create New Room</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Category</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var room in Model)
+        {
+            <tr>
+                <td>@room.Name</td>
+                <td>@room.Description</td>
+                <td>@room.Category</td>
+                <td>
+                    <a asp-controller="Rooms" asp-action="Join" asp-route-roomId="@room.Id" class="btn btn-sm btn-primary">Join</a>
+                    <a asp-controller="Rooms" asp-action="Details" asp-route-id="@room.Id" class="btn btn-sm btn-secondary">View</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

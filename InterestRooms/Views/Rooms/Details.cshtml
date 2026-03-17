@@ -1,0 +1,172 @@
+﻿@model InterestRooms.ViewModels.RoomDetailsViewModel
+
+<h2>Room Details</h2>
+
+<p><strong>Name:</strong> @Model.Room.Name</p>
+<p><strong>Description:</strong> @Model.Room.Description</p>
+<p><strong>Category:</strong> @Model.Room.Category</p>
+
+<hr />
+
+<h3>Send Message</h3>
+
+<form asp-controller="Rooms" asp-action="SendMessage" method="post">
+    <input type="hidden" name="roomId" value="@Model.Room.Id" />
+    <input type="hidden" id="replyToMessageId" name="replyToMessageId" value="" />
+
+    <div class="mb-2">
+        <small id="replyInfo" class="text-muted"></small>
+    </div>
+
+    <div class="mb-3">
+        <textarea id="messageBox" name="newMessageContent" class="form-control" rows="3" placeholder="Write your message..."></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Send</button>
+    <button type="button" id="cancelReplyBtn" class="btn btn-secondary" onclick="clearReply()" style="display:none;">
+        Cancel Reply
+    </button>
+</form>
+
+<hr />
+
+<h3>Messages</h3>
+
+@if (Model.Messages != null && Model.Messages.Any())
+{
+    <ul class="list-group">
+        @foreach (var message in Model.Messages)
+        {
+            <li class="list-group-item">
+                @if (message.IsOwnMessage)
+                {
+                    <div class="message-row message-row-own">
+                        <div class="message-bubble message-bubble-own">
+                            <strong>@message.Nickname</strong><br />
+
+                            @if (message.ReplyToMessageId.HasValue)
+                            {
+                                <div class="border rounded p-2 mb-2 bg-light">
+                                    <small>
+                                        Replying to <strong>@message.ReplyToNickname</strong>: @message.ReplyToContent
+                                    </small>
+                                </div>
+                            }
+
+                            <div>@message.Content</div>
+                            <small class="text-muted">@message.SentAt</small>
+                            <br />
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary mt-2"
+                                    onclick="setReply(@message.MessageId, '@message.Nickname')">
+                                Reply
+                            </button>
+
+                            <a asp-controller="Rooms"
+                               asp-action="ToggleLike"
+                               asp-route-roomId="@Model.Room.Id"
+                               asp-route-messageId="@message.MessageId"
+                               class="btn btn-sm btn-outline-danger mt-2">
+                                @(message.IsLikedByCurrentUser ? "Unlike" : "Like") (@message.LikeCount)
+                            </a>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(message.ProfileImagePath))
+                        {
+                            <img src="@message.ProfileImagePath" alt="Profile" class="message-avatar" />
+                        }
+                        else
+                        {
+                            <div class="avatar-fallback">
+                                @message.Nickname.Substring(0, 1).ToUpper()
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="message-row message-row-other">
+                        @if (!string.IsNullOrEmpty(message.ProfileImagePath))
+                        {
+                            <img src="@message.ProfileImagePath" alt="Profile" class="message-avatar" />
+                        }
+                        else
+                        {
+                            <div class="avatar-fallback">
+                                @message.Nickname.Substring(0, 1).ToUpper()
+                            </div>
+                        }
+
+                        <div class="message-bubble message-bubble-other">
+                            <strong>@message.Nickname</strong><br />
+
+                            @if (message.ReplyToMessageId.HasValue)
+                            {
+                                <div class="border rounded p-2 mb-2 bg-light">
+                                    <small>
+                                        Replying to <strong>@message.ReplyToNickname</strong>: @message.ReplyToContent
+                                    </small>
+                                </div>
+                            }
+
+                            <div>@message.Content</div>
+                            <small class="text-muted">@message.SentAt</small>
+                            <br />
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary mt-2"
+                                    onclick="setReply(@message.MessageId, '@message.Nickname')">
+                                Reply
+                            </button>
+
+                            <a asp-controller="Rooms"
+                               asp-action="ToggleLike"
+                               asp-route-roomId="@Model.Room.Id"
+                               asp-route-messageId="@message.MessageId"
+                               class="btn btn-sm btn-outline-danger mt-2">
+                                @(message.IsLikedByCurrentUser ? "Unlike" : "Like") (@message.LikeCount)
+                            </a>
+                        </div>
+                    </div>
+                }
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>No messages yet.</p>
+}
+
+<p class="mt-3">
+    <a asp-controller="Rooms" asp-action="Index">Back to Rooms</a>
+</p>
+
+<script>
+    function setReply(messageId, nickname) {
+        document.getElementById('replyToMessageId').value = messageId;
+        document.getElementById('replyInfo').innerText = 'Replying to: ' + nickname;
+        document.getElementById('cancelReplyBtn').style.display = 'inline-block';
+        document.getElementById('messageBox').focus();
+    }
+
+    function clearReply() {
+        document.getElementById('replyToMessageId').value = '';
+        document.getElementById('replyInfo').innerText = '';
+        document.getElementById('cancelReplyBtn').style.display = 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageBox = document.getElementById('messageBox');
+
+        if (messageBox) {
+            messageBox.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.form.submit();
+                }
+            });
+        }
+    });
+</script>
