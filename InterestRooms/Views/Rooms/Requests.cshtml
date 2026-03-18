@@ -1,0 +1,45 @@
+﻿@model List<InterestRooms.ViewModels.JoinRequestDisplayViewModel>
+
+<h2>Join Requests</h2>
+<p><strong>Room:</strong> @ViewBag.RoomName</p>
+
+@if (!Model.Any())
+{
+    <p>No pending requests.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Nickname</th>
+                <th>Requested At</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var req in Model)
+            {
+                <tr>
+                    <td>@req.Username</td>
+                    <td>@req.Email</td>
+                    <td>@req.Nickname</td>
+                    <td>@req.RequestedAt</td>
+                    <td>
+                        <form asp-action="ApproveRequest" method="post" style="display:inline;">
+                            <input type="hidden" name="requestId" value="@req.Id" />
+                            <button type="submit" class="btn btn-sm btn-primary">Approve</button>
+                        </form>
+
+                        <form asp-action="RejectRequest" method="post" style="display:inline;">
+                            <input type="hidden" name="requestId" value="@req.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

@@ -10,7 +10,7 @@
                 <th>Name</th>
                 <th>Description</th>
                 <th>Category</th>
-                <th></th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -21,7 +21,21 @@
                     <td>@room.Description</td>
                     <td>@room.Category</td>
                     <td>
-                        <a asp-controller="Rooms" asp-action="Details" asp-route-id="@room.Id" class="btn btn-sm btn-secondary">Open</a>
+                        <a asp-controller="Rooms" asp-action="Details" asp-route-id="@room.Id" class="btn btn-sm btn-secondary">
+                            Open
+                        </a>
+
+                        <a asp-controller="Rooms" asp-action="Requests" asp-route-roomId="@room.Id" class="btn btn-sm btn-primary">
+                            Requests
+                        </a>
+
+                        <form asp-controller="Rooms" asp-action="Delete" method="post" style="display:inline;"
+                              onsubmit="return confirm('Are you sure you want to delete this room?');">
+                            <input type="hidden" name="roomId" value="@room.Id" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                Delete
+                            </button>
+                        </form>
                     </td>
                 </tr>
             }

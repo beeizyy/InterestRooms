@@ -18,5 +18,8 @@ namespace InterestRooms.Models
         public ICollection<RoomNickname> RoomNicknames { get; set; } = new List<RoomNickname>();
         public ICollection<MessageLike> MessageLikes { get; set; } = new List<MessageLike>();
         public ICollection<Message> Messages { get; set; } = new List<Message>();
+        public ICollection<JoinRequest> JoinRequests { get; set; } = new List<JoinRequest>();
+
+
     }
 }

@@ -53,7 +53,26 @@ namespace InterestRooms.Controllers
             _context.Rooms.Add(room);
             _context.SaveChanges();
 
-            return RedirectToAction("Index");
+            
+            var membership = new RoomMember
+            {
+                RoomId = room.Id,
+                UserId = userId.Value,
+                JoinedAt = DateTime.Now
+            };
+
+            var ownerNickname = new RoomNickname
+            {
+                RoomId = room.Id,
+                UserId = userId.Value,
+                Nickname = "Owner"
+            };
+
+            _context.RoomMembers.Add(membership);
+            _context.RoomNicknames.Add(ownerNickname);
+            _context.SaveChanges();
+
+            return RedirectToAction("Details", new { id = room.Id });
         }
 
         [HttpGet]
@@ -109,25 +128,32 @@ namespace InterestRooms.Controllers
                 return View(model);
             }
 
-            var membership = new RoomMember
+            bool alreadyRequested = _context.JoinRequests.Any(jr =>
+                jr.RoomId == model.RoomId &&
+                jr.UserId == userId.Value &&
+                jr.Status == "Pending");
+
+            if (alreadyRequested)
+            {
+                ModelState.AddModelError("", "You already have a pending join request for this room.");
+                model.RoomName = room.Name;
+                return View(model);
+            }
+
+            var request = new JoinRequest
             {
                 RoomId = model.RoomId,
                 UserId = userId.Value,
-                JoinedAt = DateTime.Now
+                Nickname = model.Nickname,
+                RequestedAt = DateTime.Now,
+                Status = "Pending"
             };
 
-            var roomNickname = new RoomNickname
-            {
-                RoomId = model.RoomId,
-                UserId = userId.Value,
-                Nickname = model.Nickname
-            };
-
-            _context.RoomMembers.Add(membership);
-            _context.RoomNicknames.Add(roomNickname);
+            _context.JoinRequests.Add(request);
             _context.SaveChanges();
 
-            return RedirectToAction("Details", new { id = model.RoomId });
+            TempData["Message"] = "Join request sent. Waiting for room owner approval.";
+            return RedirectToAction("Index");
         }
 
         public IActionResult Details(int id)
@@ -195,8 +221,112 @@ namespace InterestRooms.Controllers
 
             return View(viewModel);
         }
+        public IActionResult Requests(int roomId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
 
-       
+            var room = _context.Rooms.FirstOrDefault(r => r.Id == roomId);
+            if (room == null)
+                return NotFound();
+
+            if (room.CreatedByUserId != userId.Value)
+                return RedirectToAction("Index");
+
+            var requests = _context.JoinRequests
+                .Where(jr => jr.RoomId == roomId && jr.Status == "Pending")
+                .Join(_context.Users,
+                      jr => jr.UserId,
+                      u => u.Id,
+                      (jr, u) => new InterestRooms.ViewModels.JoinRequestDisplayViewModel
+                      {
+                          Id = jr.Id,
+                          RoomId = jr.RoomId,
+                          Username = u.Username,
+                          Email = u.Email,
+                          Nickname = jr.Nickname,
+                          RequestedAt = jr.RequestedAt
+                      })
+                .ToList();
+
+            ViewBag.RoomName = room.Name;
+            ViewBag.RoomId = room.Id;
+
+            return View(requests);
+        }
+
+        [HttpPost]
+        public IActionResult ApproveRequest(int requestId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            var request = _context.JoinRequests.FirstOrDefault(jr => jr.Id == requestId);
+            if (request == null)
+                return NotFound();
+
+            var room = _context.Rooms.FirstOrDefault(r => r.Id == request.RoomId);
+            if (room == null)
+                return NotFound();
+
+            if (room.CreatedByUserId != userId.Value)
+                return RedirectToAction("Index");
+
+            bool alreadyMember = _context.RoomMembers.Any(rm => rm.RoomId == request.RoomId && rm.UserId == request.UserId);
+
+            if (!alreadyMember)
+            {
+                var membership = new RoomMember
+                {
+                    RoomId = request.RoomId,
+                    UserId = request.UserId,
+                    JoinedAt = DateTime.Now
+                };
+
+                var roomNickname = new RoomNickname
+                {
+                    RoomId = request.RoomId,
+                    UserId = request.UserId,
+                    Nickname = request.Nickname
+                };
+
+                _context.RoomMembers.Add(membership);
+                _context.RoomNicknames.Add(roomNickname);
+            }
+
+            request.Status = "Approved";
+            _context.SaveChanges();
+
+            return RedirectToAction("Requests", new { roomId = request.RoomId });
+        }
+
+        [HttpPost]
+        public IActionResult RejectRequest(int requestId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            var request = _context.JoinRequests.FirstOrDefault(jr => jr.Id == requestId);
+            if (request == null)
+                return NotFound();
+
+            var room = _context.Rooms.FirstOrDefault(r => r.Id == request.RoomId);
+            if (room == null)
+                return NotFound();
+
+            if (room.CreatedByUserId != userId.Value)
+                return RedirectToAction("Index");
+
+            request.Status = "Rejected";
+            _context.SaveChanges();
+
+            return RedirectToAction("Requests", new { roomId = request.RoomId });
+        }
+
+
 
         [HttpPost]
         public IActionResult SendMessage(int roomId, string newMessageContent, int? replyToMessageId)
@@ -273,6 +403,25 @@ namespace InterestRooms.Controllers
             _context.SaveChanges();
 
             return RedirectToAction("Details", new { id = roomId });
+        }
+        [HttpPost]
+        public IActionResult Delete(int roomId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            var room = _context.Rooms.FirstOrDefault(r => r.Id == roomId);
+            if (room == null)
+                return NotFound();
+
+            if (room.CreatedByUserId != userId.Value)
+                return RedirectToAction("Index");
+
+            _context.Rooms.Remove(room);
+            _context.SaveChanges();
+
+            return RedirectToAction("MyRooms");
         }
     }
 }

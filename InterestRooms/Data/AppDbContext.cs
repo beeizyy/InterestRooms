@@ -15,6 +15,7 @@ namespace InterestRooms.Data
         public DbSet<Message> Messages { get; set; }
         public DbSet<RoomNickname> RoomNicknames { get; set; }
         public DbSet<MessageLike> MessageLikes { get; set; }
+        public DbSet<JoinRequest> JoinRequests { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -78,6 +79,17 @@ namespace InterestRooms.Data
             modelBuilder.Entity<MessageLike>()
                 .HasIndex(ml => new { ml.MessageId, ml.UserId })
                 .IsUnique();
+            modelBuilder.Entity<JoinRequest>()
+    .HasOne(jr => jr.Room)
+    .WithMany(r => r.JoinRequests)
+    .HasForeignKey(jr => jr.RoomId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<JoinRequest>()
+                .HasOne(jr => jr.User)
+                .WithMany(u => u.JoinRequests)
+                .HasForeignKey(jr => jr.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
         }
 
